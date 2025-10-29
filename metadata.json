@@ -1,5 +1,5 @@
 {
-  "name": "Eco-Collecte Sénégal",
+  "name": "PPP-APP",
   "description": "An application to help citizens manage waste, find collection points, and participate in recycling initiatives in Senegal. This platform connects citizens, collection agents, and managers for a cleaner environment.",
   "requestFramePermissions": [
     "geolocation"

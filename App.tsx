@@ -26,10 +26,10 @@ const initialTasks: Task[] = [
 ];
 
 const initialAgents: Agent[] = [
-    { id: 'AG-101', name: 'Fatou Ndiaye', zone: 'Parcelles Assainies', status: 'en mission', vehicle: 'T-01A' },
-    { id: 'AG-102', name: 'Moussa Diop', zone: 'Médina', status: 'disponible', vehicle: 'T-02B' },
-    { id: 'AG-103', name: 'Ousmane Fall', zone: 'Yoff', status: 'hors service', vehicle: 'T-03C' },
-    { id: 'AG-104', name: 'Khadija Gueye', zone: 'Point E', status: 'disponible', vehicle: 'T-04D' },
+    { id: 'AG-101', name: 'Fatou Ndiaye', zone: 'Parcelles Assainies', status: 'en mission', vehicle: 'T-01A', email: 'fatou.ndiaye@agent.com' },
+    { id: 'AG-102', name: 'Moussa Diop', zone: 'Médina', status: 'disponible', vehicle: 'T-02B', email: 'moussa.diop@agent.com' },
+    { id: 'AG-103', name: 'Ousmane Fall', zone: 'Yoff', status: 'hors service', vehicle: 'T-03C', email: 'ousmane.fall@agent.com' },
+    { id: 'AG-104', name: 'Khadija Gueye', zone: 'Point E', status: 'disponible', vehicle: 'T-04D', email: 'khadija.gueye.agent@example.com' },
 ];
 
 const initialCampaigns: Campaign[] = [
@@ -154,6 +154,7 @@ const App: React.FC = () => {
                     setRewards={setRewards}
                     setEcoPointsRules={setEcoPointsRules}
                     users={users}
+                    setUsers={setUsers}
                     messages={messages}
                     setMessages={setMessages}
                     handleSendMessage={handleSendMessage}

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import type { Agent, Task, TaskStatus, Campaign, Zone, Reward, EcoPointsRules, CampaignParticipant, User, Message, Guide } from '../types';
@@ -19,6 +20,7 @@ interface ManagerDashboardProps {
     setRewards: React.Dispatch<React.SetStateAction<Reward[]>>;
     setEcoPointsRules: React.Dispatch<React.SetStateAction<EcoPointsRules>>;
     users: User[];
+    setUsers: React.Dispatch<React.SetStateAction<User[]>>;
     messages: Message[];
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
     handleSendMessage: (receiverId: string, text: string) => void;
@@ -63,7 +65,7 @@ const getStatusChipClass = (status: TaskStatus | Agent['status']) => {
     }
 }
 
-const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ allTasks, allAgents, allCampaigns, setAllTasks, setAllAgents, setAllCampaigns, participants, setParticipants, citizens, rewards, ecoPointsRules, setRewards, setEcoPointsRules, users, messages, setMessages, handleSendMessage, allZones, setAllZones, guides, setGuides }) => {
+const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ allTasks, allAgents, allCampaigns, setAllTasks, setAllAgents, setAllCampaigns, participants, setParticipants, citizens, rewards, ecoPointsRules, setRewards, setEcoPointsRules, users, setUsers, messages, setMessages, handleSendMessage, allZones, setAllZones, guides, setGuides }) => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('stats');
     const [showNotifications, setShowNotifications] = useState(false);
@@ -88,8 +90,22 @@ const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ allTasks, allAgents
     const handleSaveAgent = (agent: Agent) => {
         if (agent.id) { // Editing existing agent
             setAllAgents(allAgents.map(a => a.id === agent.id ? agent : a));
+            setUsers(prevUsers => prevUsers.map(u => u.agentId === agent.id ? { ...u, name: agent.name, email: agent.email, zone: agent.zone } : u));
         } else { // Adding new agent
-            setAllAgents([...allAgents, {...agent, id: `AG-${Date.now()}`}]);
+            const newAgentId = `AG-${Date.now()}`;
+            const newAgentWithId = {...agent, id: newAgentId};
+            setAllAgents(prev => [...prev, newAgentWithId]);
+            // Create a corresponding user
+            const newUserForAgent: User = {
+                id: `USR-${newAgentId}`,
+                name: newAgentWithId.name,
+                email: newAgentWithId.email,
+                role: 'agent',
+                agentId: newAgentId,
+                zone: newAgentWithId.zone,
+                avatarUrl: `https://i.pravatar.cc/48?u=${newAgentWithId.email}`
+            };
+            setUsers(prevUsers => [...prevUsers, newUserForAgent]);
         }
         setAgentModal({isOpen: false, agent: null});
     };
@@ -196,7 +212,7 @@ const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ allTasks, allAgents
                     {renderContent()}
                 </div>
             </div>
-            {agentModal.isOpen && <AgentModal agent={agentModal.agent} onSave={handleSaveAgent} onClose={() => setAgentModal({isOpen: false, agent: null})} />}
+            {agentModal.isOpen && <AgentModal agent={agentModal.agent} allZones={allZones} onSave={handleSaveAgent} onClose={() => setAgentModal({isOpen: false, agent: null})} />}
             {campaignModal && <CampaignModal onSave={handleSaveCampaign} onClose={() => setCampaignModal(false)} />}
             {reportModal.isOpen && reportModal.task && <ReportModal task={reportModal.task} agents={allAgents} onAssign={handleAssignAgentToTask} onClose={() => setReportModal({isOpen: false, task: null})} />}
             {zoneModal.isOpen && <ZoneModal zone={zoneModal.zone} onSave={handleSaveZone} onClose={() => setZoneModal({isOpen: false, zone: null})} />}
@@ -739,8 +755,13 @@ const ChatView: React.FC<{
 
 
 // MODALS
-const AgentModal: React.FC<{agent: Agent | null, onSave: (agent: Agent) => void, onClose: () => void}> = ({ agent, onSave, onClose }) => {
-    const [formData, setFormData] = useState<Omit<Agent, 'id'>>(agent || { name: '', zone: '', status: 'disponible', vehicle: '' });
+const AgentModal: React.FC<{
+    agent: Agent | null, 
+    allZones: Zone[],
+    onSave: (agent: Agent) => void, 
+    onClose: () => void
+}> = ({ agent, allZones, onSave, onClose }) => {
+    const [formData, setFormData] = useState<Omit<Agent, 'id'>>(agent || { name: '', email: '', zone: '', status: 'disponible', vehicle: '' });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -757,7 +778,22 @@ const AgentModal: React.FC<{agent: Agent | null, onSave: (agent: Agent) => void,
             <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
                     <InputField label="Nom" name="name" value={formData.name} onChange={handleChange} />
-                    <InputField label="Zone" name="zone" value={formData.zone} onChange={handleChange} />
+                    <InputField label="Email" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="agent@example.com" />
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">Zone</label>
+                        <select 
+                            name="zone" 
+                            value={formData.zone} 
+                            onChange={handleChange} 
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                            required
+                        >
+                            <option value="" disabled>-- Sélectionner une zone --</option>
+                            {allZones.map(zone => (
+                                <option key={zone.id} value={zone.name}>{zone.name}</option>
+                            ))}
+                        </select>
+                    </div>
                     <InputField label="Véhicule" name="vehicle" value={formData.vehicle} onChange={handleChange} />
                      <div>
                         <label className="block text-sm font-medium text-gray-700">Statut</label>

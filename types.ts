@@ -28,6 +28,7 @@ export interface Agent {
     zone: string;
     status: 'disponible' | 'en mission' | 'hors service';
     vehicle: string;
+    email: string;
 }
 
 export type TaskStatus = 'en attente' | 'en cours' | 'terminé';
